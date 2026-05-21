@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Migración Fibra Óptica</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --bg2: #eceae4;
+    --card: #ffffff;
+    --text: #1a1a18;
+    --text2: #6b6b66;
+    --text3: #9e9e98;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --red: #c0392b; --red-bg: #fdf0ef; --red-border: #f5c6c2;
+    --amber: #b45309; --amber-bg: #fef9ec; --amber-border: #fcd97e;
+    --green: #2d7a3a; --green-bg: #f0faf2; --green-border: #9fdcaa;
+    --blue: #1a5fa8; --blue-bg: #eef4fc; --blue-border: #a8c9f0;
+    --gray: #888780; --gray-bg: #f1f0ec; --gray-border: #d3d1c7;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #232320; --card: #2a2a27;
+      --text: #f0ede8; --text2: #a0a09a; --text3: #6b6b66;
+      --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.15);
+      --red: #f28b82; --red-bg: #3a1c1a; --red-border: #7a2d28;
+      --amber: #fbbf24; --amber-bg: #2d2010; --amber-border: #78480d;
+      --green: #6ee27f; --green-bg: #142018; --green-border: #2a5c32;
+      --blue: #7ab8f5; --blue-bg: #0e1f36; --blue-border: #1a4a80;
+      --gray: #888780; --gray-bg: #2c2c2a; --gray-border: #444441;
+      --shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 16px 12px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .header-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; font-family: 'Georgia', serif; }
+  .header-sub { font-size: 12px; color: var(--text3); font-family: sans-serif; }
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .stat { background: var(--bg2); border-radius: var(--radius-sm); padding: 7px 6px; text-align: center; }
+  .stat-val { font-size: 18px; font-weight: 700; font-family: 'Georgia', serif; line-height: 1; }
+  .stat-lbl { font-size: 9px; color: var(--text3); font-family: sans-serif; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-val.red { color: var(--red); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.done { color: var(--text2); }
+
+  .filter-bar { display: flex; gap: 6px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-btn { border: 1px solid var(--border2); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-family: sans-serif; background: var(--card); color: var(--text2); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .filter-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  .main { padding: 12px 16px 80px; }
+  .ap-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .ap-header { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .ap-name { font-size: 15px; font-weight: 700; font-family: 'Georgia', serif; }
+  .ap-meta { font-size: 11px; color: var(--text3); font-family: sans-serif; margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 20px; font-family: sans-serif; font-weight: 600; display: inline-block; border: 1px solid; }
+  .badge-red { color: var(--red); background: var(--red-bg); border-color: var(--red-border); }
+  .badge-amber { color: var(--amber); background: var(--amber-bg); border-color: var(--amber-border); }
+  .badge-green { color: var(--green); background: var(--green-bg); border-color: var(--green-border); }
+  .badge-gray { color: var(--gray); background: var(--gray-bg); border-color: var(--gray-border); }
+  .badge-blue { color: var(--blue); background: var(--blue-bg); border-color: var(--blue-border); }
+
+  .client-item { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; transition: background 0.12s; }
+  .client-item:last-child { border-bottom: none; }
+  .client-item.migrated { opacity: 0.4; }
+  .client-left { flex: 1; min-width: 0; }
+  .client-name { font-size: 13px; font-weight: 600; font-family: sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .client-detail { font-size: 11px; color: var(--text3); font-family: sans-serif; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .signal-pill { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; font-family: sans-serif; }
+  .sig-red { background: var(--red-bg); color: var(--red); }
+  .sig-amber { background: var(--amber-bg); color: var(--amber); }
+  .sig-green { background: var(--green-bg); color: var(--green); }
+  .bar-wrap { width: 48px; flex-shrink: 0; }
+  .bar-track { height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 4px; border-radius: 2px; }
+  .migrate-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border2); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 16px; color: var(--text3); }
+  .migrate-btn:active { transform: scale(0.9); }
+  .migrate-btn.done { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+
+  .progress-bar { height: 4px; background: var(--bg2); }
+  .progress-fill { height: 4px; background: var(--green); transition: width 0.4s ease; }
+
+  .legend { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+  .legend-title { font-size: 11px; font-family: sans-serif; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .legend-items { display: flex; flex-wrap: wrap; gap: 8px; }
+  .legend-item { font-size: 11px; font-family: sans-serif; display: flex; align-items: center; gap: 4px; }
+
+  .empty-msg { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 13px; font-family: sans-serif; }
+
+  .ap-progress { height: 3px; background: var(--bg2); }
+  .ap-progress-fill { height: 3px; background: var(--green); transition: width 0.3s; }
+
+  @media (max-width: 380px) {
+    .stats-row { grid-template-columns: repeat(5, 1fr); }
+    .stat-val { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="header-title">📡 Migración Fibra Óptica</div>
+      <div class="header-sub" id="header-sub">Cargando...</div>
+    </div>
+  </div>
+  <div class="stats-row" style="margin-bottom:8px">
+    <div class="stat"><div class="stat-val" id="s-total">52</div><div class="stat-lbl">Total</div></div>
+    <div class="stat"><div class="stat-val red" id="s-high">—</div><div class="stat-lbl">Crítico</div></div>
+    <div class="stat"><div class="stat-val amber" id="s-med">—</div><div class="stat-lbl">Medio</div></div>
+    <div class="stat"><div class="stat-val green" id="s-ok">—</div><div class="stat-lbl">OK</div></div>
+    <div class="stat"><div class="stat-val done" id="s-done">0</div><div class="stat-lbl">Migrado</div></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="global-progress" style="width:0%"></div></div>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('all')" id="fb-all">Todos</button>
+  <button class="filter-btn" onclick="setFilter('alta')" id="fb-alta">🔴 Alta prioridad</button>
+  <button class="filter-btn" onclick="setFilter('media')" id="fb-media">🟡 Media prioridad</button>
+  <button class="filter-btn" onclick="setFilter('ok')" id="fb-ok">🟢 OK</button>
+  <button class="filter-btn" onclick="setFilter('pendiente')" id="fb-pendiente">⏳ Pendientes</button>
+  <button class="filter-btn" onclick="setFilter('migrado')" id="fb-migrado">✅ Migrados</button>
+</div>
+
+<div class="main" id="main-content"></div>
+
+<script>
+const APS = [
+  { id:'sur', nombre:'AT_SUR', modelo:'Rocket 5AC Lite', airtime:28.5,
+    clientes:[
+      {n:'CENA CAMPO', s:-78, r:-73, dl:66, ul:47},
+      {n:'NOEMI DONALISIO', s:-77, r:-57, dl:50, ul:47},
+      {n:'COMERCIAL ROSSI', s:-77, r:-58, dl:114, ul:71},
+      {n:'CUELLO', s:-75, r:-50, dl:114, ul:71},
+      {n:'LILIAN SAMBUSETTI', s:-75, r:-56, dl:118, ul:67},
+      {n:'YAMILA PEKO', s:-75, r:-58, dl:111, ul:71},
+      {n:'GABRIEL GATTI', s:-74, r:-64, dl:118, ul:69},
+      {n:'GOMEZ NICOLAS', s:-70, r:-60, dl:45, ul:71},
+      {n:'OLICOL', s:-64, r:-54, dl:98, ul:133},
+      {n:'CRISTIAN SUARES', s:-68, r:-46, dl:112, ul:133},
+      {n:'PLAYON MUNI', s:-68, r:-50, dl:109, ul:120},
+      {n:'ROSA CONTRERAS', s:-68, r:-50, dl:122, ul:120},
+      {n:'CRISTINA YORDA', s:-59, r:-44, dl:122, ul:133},
+      {n:'CARINA FUENTES', s:-60, r:-43, dl:122, ul:133},
+      {n:'MARIA FIGUEROA', s:-24, r:-52, dl:122, ul:59},
+    ]
+  },
+  { id:'norte', nombre:'AT_NORTE', modelo:'Rocket 5AC Lite', airtime:2.4,
+    clientes:[
+      {n:'RINCON CULTURAL', s:-78, r:-61, dl:80, ul:47},
+      {n:'JAVIER CASALE', s:-75, r:-57, dl:89, ul:61},
+      {n:'LESLI ORDONEZ', s:-74, r:-65, dl:79, ul:62},
+      {n:'DANA AGUIAR', s:-68, r:-50, dl:122, ul:133},
+      {n:'GUILLERMO RAVERA', s:-65, r:-55, dl:122, ul:120},
+      {n:'JAVIER LEDESMA', s:-63, r:-46, dl:122, ul:120},
+      {n:'ROSA OVIEDO', s:-62, r:-45, dl:122, ul:53},
+      {n:'SUAREZ CHAI', s:-62, r:-46, dl:121, ul:120},
+      {n:'ALBERTO PALACIOS', s:-61, r:-52, dl:76, ul:95},
+      {n:'POLICIA', s:-61, r:-47, dl:122, ul:133},
+      {n:'RUBEN ESPINOSA', s:-59, r:-46, dl:121, ul:108},
+      {n:'SIRAVEGNA JUAN', s:-57, r:-50, dl:122, ul:133},
+      {n:'ANDREA MARTINA', s:-58, r:-43, dl:116, ul:120},
+    ]
+  },
+  { id:'noroeste', nombre:'AT_NOROESTE', modelo:'Rocket 5AC Lite', airtime:15.6,
+    clientes:[
+      {n:'SERGIO VARELA CASA', s:-73, r:-58, dl:122, ul:108},
+      {n:'NUTREG', s:-72, r:-67, dl:90, ul:83},
+      {n:'PLAZA COLAZO', s:-64, r:-63, dl:109, ul:86},
+      {n:'SINLAC', s:-64, r:-59, dl:122, ul:116},
+      {n:'LUCAS GARCIA CASA', s:-61, r:-53, dl:122, ul:133},
+      {n:'MARIA VEGA', s:-61, r:-47, dl:122, ul:133},
+      {n:'JOSE MORIONDO', s:-54, r:-54, dl:122, ul:120},
+      {n:'MATIAS RODRIGUEZ', s:-48, r:-46, dl:52, ul:66},
+    ]
+  },
+  { id:'sureste', nombre:'AT_SURESTE', modelo:'Rocket 5AC Lite', airtime:2.0,
+    clientes:[
+      {n:'UMBERTOCARRILLO', s:-77, r:-71, dl:52, ul:71},
+      {n:'NOEMI CAMPOO', s:-78, r:-61, dl:108, ul:71},
+      {n:'RUBEN SAMBUCETTI', s:-68, r:-68, dl:91, ul:45},
+      {n:'MARIA LUAN', s:-67, r:-49, dl:105, ul:120},
+      {n:'RICHIERO JOSE', s:-66, r:-55, dl:107, ul:120},
+      {n:'ANDREA MANETTI', s:-63, r:-52, dl:97, ul:120},
+      {n:'JOSE LUIS CALCATERRA', s:-62, r:-52, dl:117, ul:120},
+      {n:'LUCAS PESANDO', s:-59, r:-48, dl:104, ul:120},
+      {n:'CLINICA', s:-59, r:-47, dl:103, ul:120},
+    ]
+  },
+  { id:'panel_c', nombre:'AT_PANEL_C', modelo:'LiteAP C', airtime:0.8,
+    clientes:[
+      {n:'GODINO MIRTA', s:-73, r:-56, dl:52, ul:47},
+      {n:'RAUL MELANO', s:-62, r:-55, dl:112, ul:120},
+      {n:'JUAN ORDONEZ', s:-57, r:-40, dl:103, ul:133},
+      {n:'DANIEL SIRAVEGNA', s:-56, r:-47, dl:117, ul:120},
+      {n:'DIEGO VEGA', s:-56, r:-45, dl:89, ul:59},
+      {n:'SEGURIDAD CIUDAD ADANA', s:-56, r:-43, dl:41, ul:53},
+      {n:'PLAYA CAMIONES CENTRO', s:-54, r:-46, dl:117, ul:133},
+      {n:'CHAMAS SERGIO', s:-51, r:-44, dl:101, ul:120},
+    ]
+  },
+  { id:'panel_b', nombre:'AT_PANEL_B', modelo:'Rocket M5', airtime:2.0,
+    clientes:[
+      {n:'LILIANA FACRCHETO', s:-57, r:-59, dl:144, ul:78},
+      {n:'JARDIN SEM DE MAYO', s:-55, r:-61, dl:130, ul:78},
+      {n:'DANIEL VALINOTTI', s:-52, r:-59, dl:117, ul:52},
+      {n:'NESTOR AMAYA', s:-47, r:-59, dl:144, ul:117},
+    ]
+  },
+];
+
+const STORAGE_KEY = 'migrados_v1';
+let migrated = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+let currentFilter = 'all';
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...migrated]));
+}
+
+function getPrio(s) {
+  if (s <= -70) return 'alta';
+  if (s <= -60) return 'media';
+  return 'ok';
+}
+
+function sigClass(s) {
+  if (s <= -70) return 'sig-red';
+  if (s <= -60) return 'sig-amber';
+  return 'sig-green';
+}
+
+function barColor(s) {
+  if (s <= -70) return '#c0392b';
+  if (s <= -60) return '#b45309';
+  return '#2d7a3a';
+}
+
+function barPct(s) {
+  return Math.min(100, Math.max(0, ((s + 90) / 40) * 100));
+}
+
+function clientKey(apId, idx) { return apId + '_' + idx; }
+
+function updateStats() {
+  const all = APS.flatMap((ap, ai) => ap.clientes.map((c, ci) => ({ key: clientKey(ap.id, ci), s: c.s })));
+  const total = all.length;
+  const high = all.filter(x => !migrated.has(x.key) && x.s <= -70).length;
+  const med = all.filter(x => !migrated.has(x.key) && x.s > -70 && x.s <= -60).length;
+  const ok = all.filter(x => !migrated.has(x.key) && x.s > -60).length;
+  const done = migrated.size;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-high').textContent = high;
+  document.getElementById('s-med').textContent = med;
+  document.getElementById('s-ok').textContent = ok;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('global-progress').style.width = Math.round(done/total*100) + '%';
+  document.getElementById('header-sub').textContent = Math.round(done/total*100) + '% completado · ' + done + ' de ' + total + ' migrados';
+}
+
+function toggle(key) {
+  if (migrated.has(key)) migrated.delete(key);
+  else migrated.add(key);
+  save();
+  updateStats();
+  render();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('fb-' + f).classList.add('active');
+  render();
+}
+
+function apOrderScore(ap) {
+  const airScore = ap.airtime > 20 ? 0 : ap.airtime > 10 ? 1 : 2;
+  const highCount = ap.clientes.filter(c => c.s <= -70).length;
+  return airScore * 100 - highCount;
+}
+
+function render() {
+  const container = document.getElementById('main-content');
+  const sortedAPs = [...APS].sort((a,b) => apOrderScore(a) - apOrderScore(b));
+
+  let html = '';
+
+  for (const ap of sortedAPs) {
+    const sorted = [...ap.clientes].map((c,i) => ({...c, idx:i})).sort((a,b) => a.s - b.s);
+
+    let visibleClients = sorted.filter(c => {
+      const key = clientKey(ap.id, c.idx);
+      const isMig = migrated.has(key);
+      if (currentFilter === 'migrado') return isMig;
+      if (currentFilter === 'pendiente') return !isMig;
+      if (isMig) return false;
+      if (currentFilter === 'alta') return c.s <= -70;
+      if (currentFilter === 'media') return c.s > -70 && c.s <= -60;
+      if (currentFilter === 'ok') return c.s > -60;
+      return true;
+    });
+
+    if (visibleClients.length === 0) continue;
+
+    const totalAP = ap.clientes.length;
+    const doneAP = ap.clientes.filter((c,i) => migrated.has(clientKey(ap.id,i))).length;
+    const pctAP = Math.round(doneAP/totalAP*100);
+
+    const highAP = ap.clientes.filter(c => c.s <= -70).length;
+    const airBadge = ap.airtime > 20 ? `<span class="badge badge-red">Airtime ${ap.airtime}%</span>` :
+                     ap.airtime > 10 ? `<span class="badge badge-amber">Airtime ${ap.airtime}%</span>` :
+                     `<span class="badge badge-green">Airtime ${ap.airtime}%</span>`;
+    const highBadge = highAP > 0 ? `<span class="badge badge-red">${highAP} críticos</span>` : '';
+
+    html += `<div class="ap-card">
+      <div class="ap-header">
+        <div style="flex:1;min-width:0">
+          <div class="ap-name">${ap.nombre}</div>
+          <div class="ap-meta">${ap.modelo} · ${totalAP} clientes &nbsp;${airBadge}&nbsp;${highBadge}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:700;font-family:sans-serif;color:var(--green)">${doneAP}/${totalAP}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:sans-serif">${pctAP}%</div>
+        </div>
+      </div>
+      <div class="ap-progress"><div class="ap-progress-fill" style="width:${pctAP}%"></div></div>`;
+
+    for (const c of visibleClients) {
+      const key = clientKey(ap.id, c.idx);
+      const isMig = migrated.has(key);
+      const prio = getPrio(c.s);
+      const pct = barPct(c.s).toFixed(0);
+      html += `<div class="client-item${isMig?' migrated':''}">
+        <div class="client-left">
+          <div class="client-name">${c.n}</div>
+          <div class="client-detail">
+            <span class="signal-pill ${sigClass(c.s)}">${c.s} dBm</span>
+            <span style="color:var(--text3)">↓${c.dl} ↑${c.ul} Mbps</span>
+            ${isMig ? '<span class="badge badge-gray">Migrado</span>' : prio === 'alta' ? '<span class="badge badge-red">Alta</span>' : prio === 'media' ? '<span class="badge badge-amber">Media</span>' : '<span class="badge badge-green">OK</span>'}
+          </div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${barColor(c.s)}"></div></div>
+          <div style="font-size:9px;color:var(--text3);font-family:sans-serif;text-align:center;margin-top:2px">${c.s}</div>
+        </div>
+        <button class="migrate-btn${isMig?' done':''}" onclick="toggle('${key}')" title="${isMig?'Deshacer':'Marcar como migrado'}">
+          ${isMig ? '✓' : '○'}
+        </button>
+      </div>`;
+    }
+
+    html += '</div>';
+  }
+
+  if (!html) html = '<div class="empty-msg">No hay clientes en esta categoría</div>';
+
+  html += `<div class="legend">
+    <div class="legend-title">Referencia de señales</div>
+    <div class="legend-items">
+      <span class="legend-item"><span class="badge badge-red">Alta</span> ≤ −70 dBm</span>
+      <span class="legend-item"><span class="badge badge-amber">Media</span> −61 a −70</span>
+      <span class="legend-item"><span class="badge badge-green">OK</span> ≥ −60 dBm</span>
+      <span class="legend-item"><span class="badge badge-gray">Migrado</span> completado</span>
+    </div>
+  </div>`;
+
+  container.innerHTML = html;
+}
+
+updateStats();
+render();
+</script>
+</body>
+</html>
